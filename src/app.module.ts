@@ -12,6 +12,7 @@ import { DatabaseModule } from './database/database.module';
 import { validateEnvironment } from './config/environment';
 import { RedisModule } from './redis/redis.module';
 import { UsersModule } from './users/users.module';
+import { UserProfilesModule } from './user-profiles/user-profiles.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -24,6 +25,7 @@ import { AppController } from './app.controller';
     RedisModule,
     UsersModule,
     AuthModule,
+    UserProfilesModule,
     I18nModule.forRoot({
       fallbackLanguage: process.env.DEFAULT_LANG ?? 'en',
       loaderOptions: {

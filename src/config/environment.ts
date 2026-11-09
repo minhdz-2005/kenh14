@@ -69,6 +69,7 @@ export function validateEnvironment(
   const dbSsl =
     environment.DB_SSL === 'true' ||
     (environment.DB_SSL !== 'false' && dbHost.includes('supabase.'));
+  const dbCaCertPath = environment.DB_CA_CERT_PATH;
 
   return {
     ...environment,
@@ -77,6 +78,7 @@ export function validateEnvironment(
     DB_PORT: databasePort,
     DB_SCHEMA: environment.DB_SCHEMA ?? 'public',
     DB_SSL: dbSsl,
+    DB_CA_CERT_PATH: dbCaCertPath,
     APP_PORT: port,
     JWT_EXPIRES_IN: expiresIn,
     JWT_TTL_SECONDS: jwtTtlSeconds,

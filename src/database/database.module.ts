@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 @Module({
   imports: [
@@ -15,7 +17,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         database: config.getOrThrow<string>('DB_NAME'),
         schema: config.get<string>('DB_SCHEMA', 'public'),
         ssl: config.get<boolean>('DB_SSL', false)
-          ? { rejectUnauthorized: true }
+          ? {
+              ...(config.get<string>('DB_CA_CERT_PATH')
+                ? {
+                    ca: readFileSync(
+                      resolve(config.getOrThrow<string>('DB_CA_CERT_PATH')),
+                      'utf8',
+                    ),
+                  }
+                : {}),
+              rejectUnauthorized: true,
+            }
           : false,
         autoLoadEntities: true,
         synchronize: false,
