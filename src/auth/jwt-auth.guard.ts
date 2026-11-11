@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { I18nContext, I18nService } from 'nestjs-i18n';
 import { RedisService } from '../redis/redis.service';
 import { AccessTokenPayload, AuthenticatedUser } from './auth.types';
 
@@ -16,6 +17,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwt: JwtService,
     private readonly redis: RedisService,
+    private readonly i18n: I18nService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -41,7 +43,11 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     if (await this.redis.isTokenRevoked(payload.jti)) {
-      throw new UnauthorizedException('Access token has been revoked');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.tokenRevoked', {
+          lang: I18nContext.current()?.lang,
+        }),
+      );
     }
 
     request.user = {

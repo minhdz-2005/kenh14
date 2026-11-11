@@ -1,18 +1,21 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash } from 'bcryptjs';
 import { randomUUID } from 'node:crypto';
+import { I18nContext, I18nService } from 'nestjs-i18n';
 import { QueryFailedError } from 'typeorm';
 import { RedisService } from '../redis/redis.service';
 import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { AuthenticatedUser } from './auth.types';
+import {
+  BCRYPT_SALT_ROUNDS,
+  DUMMY_PASSWORD_HASH,
+} from './password.constants';
 
 interface UserCredentials {
   email: string;
@@ -29,15 +32,11 @@ export class AuthService {
     private readonly users: UsersService,
     private readonly jwt: JwtService,
     private readonly redis: RedisService,
-    private readonly config: ConfigService,
+    private readonly i18n: I18nService,
   ) {}
 
   async register(credentials: RegisterCredentials) {
-    if (Buffer.byteLength(credentials.password, 'utf8') > 72) {
-      throw new BadRequestException('Password is too long');
-    }
-
-    const passwordHash = await hash(credentials.password, 12);
+    const passwordHash = await hash(credentials.password, BCRYPT_SALT_ROUNDS);
     let user: User;
     try {
       user = await this.users.create({
@@ -51,9 +50,7 @@ export class AuthService {
           ? (error.driverError as { code?: string })
           : undefined;
       if (driverError?.code === '23505') {
-        throw new ConflictException(
-          'A user with this email or username already exists',
-        );
+        throw new ConflictException(this.translate('duplicateUser'));
       }
       throw error;
     }
@@ -62,13 +59,13 @@ export class AuthService {
   }
 
   async login(credentials: UserCredentials) {
-    if (Buffer.byteLength(credentials.password, 'utf8') > 72) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
     const user = await this.users.findByEmail(credentials.email);
-    if (!user || !(await compare(credentials.password, user.passwordHash))) {
-      throw new UnauthorizedException('Invalid email or password');
+    const passwordMatches = await compare(
+      credentials.password,
+      user?.passwordHash ?? DUMMY_PASSWORD_HASH,
+    );
+    if (!user || !passwordMatches) {
+      throw new UnauthorizedException(this.translate('invalidCredentials'));
     }
     return this.toUserResponse(user, await this.issueToken(user));
   }
@@ -100,5 +97,11 @@ export class AuthService {
         image: user.image,
       },
     };
+  }
+
+  private translate(key: 'duplicateUser' | 'invalidCredentials'): string {
+    return this.i18n.t(`auth.${key}`, {
+      lang: I18nContext.current()?.lang,
+    });
   }
 }

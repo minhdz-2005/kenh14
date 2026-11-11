@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsDefined,
   IsEmail,
@@ -9,9 +9,17 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { MaxPasswordBytes } from './max-password-bytes.validator';
+import {
+  MAX_PASSWORD_BYTES,
+  MIN_PASSWORD_CHARACTERS,
+} from '../password.constants';
 
 export class RegisterCredentialsDto {
   @ApiProperty({ example: 'minh@example.com' })
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
   @IsEmail()
   @MaxLength(254)
   email!: string;
@@ -22,9 +30,14 @@ export class RegisterCredentialsDto {
   @Matches(/^[a-zA-Z0-9_-]+$/)
   username!: string;
 
-  @ApiProperty({ example: 'a-strong-password', minLength: 8, maxLength: 72 })
+  @ApiProperty({
+    example: 'a-strong-password',
+    minLength: MIN_PASSWORD_CHARACTERS,
+    maxLength: MAX_PASSWORD_BYTES,
+  })
   @IsString()
-  @Length(8, 72)
+  @MaxPasswordBytes()
+  @Length(MIN_PASSWORD_CHARACTERS, MAX_PASSWORD_BYTES)
   password!: string;
 }
 

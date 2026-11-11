@@ -2,21 +2,10 @@ import 'dotenv/config';
 import { join } from 'node:path';
 import { DataSource } from 'typeorm';
 import { User } from '../users/user.entity';
+import { createDatabaseOptions } from './database-options';
 
 const dataSource = new DataSource({
-  type: 'postgres',
-  host: process.env.DB_HOST ?? 'localhost',
-  port: Number(process.env.DB_PORT ?? 5432),
-  username: process.env.DB_USER ?? 'kenh14',
-  password: process.env.DB_PASSWORD ?? 'kenh14_local_only',
-  database: process.env.DB_NAME ?? 'kenh14',
-  schema: process.env.DB_SCHEMA ?? 'public',
-  ssl:
-    process.env.DB_SSL === 'true' ||
-    (process.env.DB_SSL !== 'false' &&
-      (process.env.DB_HOST ?? '').includes('supabase.'))
-      ? { rejectUnauthorized: true }
-      : false,
+  ...createDatabaseOptions(process.env),
   entities: [User],
   migrations: [join(__dirname, 'migrations/*{.ts,.js}')],
   synchronize: false,

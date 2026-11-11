@@ -1,3 +1,5 @@
+import { validateDatabaseEnvironment } from '../database/database-options';
+
 function requiredString(
   environment: Record<string, unknown>,
   key: string,
@@ -25,10 +27,8 @@ function parseDurationSeconds(value: string): number {
   };
   const multiplier = multipliers[unit];
   const seconds = amount * multiplier;
-  if (!Number.isSafeInteger(seconds) || seconds < 1) {
-    throw new Error(
-      'JWT_EXPIRES_IN must resolve to a positive number of seconds',
-    );
+  if (!Number.isSafeInteger(seconds) || seconds < 60 || seconds > 86400) {
+    throw new Error('JWT_EXPIRES_IN must be between 60 seconds and 24 hours');
   }
   return seconds;
 }
@@ -37,10 +37,7 @@ export function validateEnvironment(
   environment: Record<string, unknown>,
 ): Record<string, unknown> {
   requiredString(environment, 'APP_NAME');
-  requiredString(environment, 'DB_HOST');
-  requiredString(environment, 'DB_USER');
-  requiredString(environment, 'DB_PASSWORD');
-  requiredString(environment, 'DB_NAME');
+  const database = validateDatabaseEnvironment(environment);
   requiredString(environment, 'JWT_SECRET');
   requiredString(environment, 'REDIS_URL');
 
@@ -50,7 +47,7 @@ export function validateEnvironment(
   }
 
   const port = Number(environment.APP_PORT ?? 3000);
-  const databasePort = Number(environment.DB_PORT ?? 5432);
+  const databasePort = database.port;
   if (![port, databasePort].every(Number.isInteger)) {
     throw new Error('APP_PORT and DB_PORT must be integers');
   }
@@ -65,18 +62,13 @@ export function validateEnvironment(
 
   const expiresIn = String(environment.JWT_EXPIRES_IN ?? '1h');
   const jwtTtlSeconds = parseDurationSeconds(expiresIn);
-  const dbHost = environment.DB_HOST as string;
-  const dbSsl =
-    environment.DB_SSL === 'true' ||
-    (environment.DB_SSL !== 'false' && dbHost.includes('supabase.'));
-
   return {
     ...environment,
     APP_NAME: environment.APP_NAME,
     DEFAULT_LANG: environment.DEFAULT_LANG ?? 'en',
     DB_PORT: databasePort,
     DB_SCHEMA: environment.DB_SCHEMA ?? 'public',
-    DB_SSL: dbSsl,
+    DB_SSL: database.useSsl,
     APP_PORT: port,
     JWT_EXPIRES_IN: expiresIn,
     JWT_TTL_SECONDS: jwtTtlSeconds,
