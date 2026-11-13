@@ -50,4 +50,11 @@ export class UsersService {
   findById(id: string): Promise<User | null> {
     return this.users.findOne({ where: { id }, relations: { profile: true } });
   }
+
+  findByUsername(username: string): Promise<User | null> {
+    return this.users.findOne({
+      where: { username },
+      relations: { profile: true },
+    });
+  }
 }

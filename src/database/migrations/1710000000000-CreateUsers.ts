@@ -8,7 +8,7 @@ export class CreateUsers1710000000000 implements MigrationInterface {
     const quotedSchema = `"${schema.replace(/"/g, '""')}"`;
     await queryRunner.createSchema(schema, true);
     await queryRunner.query(`
-      CREATE TABLE ${quotedSchema}."users" (
+      CREATE TABLE IF NOT EXISTS ${quotedSchema}."users" (
         "id" uuid NOT NULL,
         "email" character varying(254) NOT NULL,
         "username" character varying(30) NOT NULL,

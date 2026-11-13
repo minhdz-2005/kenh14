@@ -11,8 +11,8 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main.js",
-    "migration:run": "typeorm-ts-node-commonjs migration:run -- -d src/database/data-source.ts",
-    "migration:revert": "typeorm-ts-node-commonjs migration:revert -- -d src/database/data-source.ts",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts",
     "test:auth": "node --test -r ts-node/register test/auth-flow.spec.ts",
     "lint": "eslint \"src/**/*.ts\""
   },
