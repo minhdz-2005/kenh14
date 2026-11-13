@@ -3,9 +3,11 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  OneToOne,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Profile } from '../profiles/profile.entity';
 
 @Entity({ name: 'users' })
 @Index('users_email_unique', ['email'], { unique: true })
@@ -28,11 +30,8 @@ export class User {
   })
   passwordHash!: string;
 
-  @Column({ type: 'text', nullable: true })
-  bio!: string | null;
-
-  @Column({ type: 'text', nullable: true })
-  image!: string | null;
+  @OneToOne(() => Profile, (profile) => profile.user)
+  profile?: Profile;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

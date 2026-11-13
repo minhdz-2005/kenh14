@@ -93,8 +93,8 @@ export class AuthService {
         email: user.email,
         token,
         username: user.username,
-        bio: user.bio,
-        image: user.image,
+        bio: user.profile?.bio ?? null,
+        image: user.profile?.avtUrl ?? null,
       },
     };
   }
