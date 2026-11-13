@@ -1,6 +1,7 @@
 node_modules/
 dist/
 coverage/
+/private-uploads/
 .env
 .env.*
 !.env.example
