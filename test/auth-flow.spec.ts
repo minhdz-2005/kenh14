@@ -33,8 +33,10 @@ const testUsers: any = {
     id: 'user-id',
     email: 'minh@example.com',
     username: 'minh',
-    bio: null,
-    image: null,
+    profile: {
+      bio: 'Backend developer',
+      avtUrl: '/api/attachments/avatar-id',
+    },
   }),
 };
 
@@ -51,6 +53,26 @@ const auth = new AuthService(
   testRedis as never,
   translations as never,
 );
+
+test('current user response reads bio and image from the profile', async () => {
+  const response = await auth.getCurrentUser({
+    id: 'user-id',
+    email: 'minh@example.com',
+    tokenId: 'token-id',
+    expiresAt: 1,
+    token: 'access-token',
+  });
+
+  assert.deepEqual(response, {
+    user: {
+      email: 'minh@example.com',
+      token: 'access-token',
+      username: 'minh',
+      bio: 'Backend developer',
+      image: '/api/attachments/avatar-id',
+    },
+  });
+});
 
 test('duplicate registration returns 409', async () => {
   await assert.rejects(
@@ -72,8 +94,6 @@ test('wrong password returns 401 for an existing email', async () => {
     username: 'minh',
     passwordHash:
       '$2b$12$PCxmhQtOtVsmGBx6H24JEefp9Q/gmheNsibDPw/eBvVfLkak6xfDm',
-    bio: null,
-    image: null,
   });
   try {
     await assert.rejects(

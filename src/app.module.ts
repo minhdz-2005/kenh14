@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { validateEnvironment } from './config/environment';
 import { RedisModule } from './redis/redis.module';
+import { ProfilesModule } from './profiles/profiles.module';
 import { UsersModule } from './users/users.module';
 import { AppController } from './app.controller';
 
@@ -23,6 +24,7 @@ import { AppController } from './app.controller';
     DatabaseModule,
     RedisModule,
     UsersModule,
+    ProfilesModule,
     AuthModule,
     I18nModule.forRoot({
       fallbackLanguage: process.env.DEFAULT_LANG ?? 'en',
