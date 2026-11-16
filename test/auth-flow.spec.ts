@@ -5,7 +5,10 @@ import { validate } from 'class-validator';
 import { JwtService } from '@nestjs/jwt';
 import { ExecutionContext } from '@nestjs/common';
 import { AuthService } from '../src/auth/auth.service';
-import { JwtAuthGuard } from '../src/auth/jwt-auth.guard';
+import {
+  JwtAuthGuard,
+  OptionalJwtAuthGuard,
+} from '../src/auth/jwt-auth.guard';
 import { LoginCredentialsDto } from '../src/auth/dto/login-user.dto';
 import { RegisterCredentialsDto } from '../src/auth/dto/register-user.dto';
 import { validateEnvironment } from '../src/config/environment';
@@ -188,4 +191,19 @@ test('JWT guard rejects a token after the logout flow revokes it', async () => {
     guard.canActivate(context),
     (error: { getStatus?: () => number }) => error.getStatus?.() === 401,
   );
+});
+
+test('optional JWT guard allows requests without an authorization header', async () => {
+  const guard = new OptionalJwtAuthGuard(
+    new JwtService({ secret: 'unused' }),
+    testRedis as never,
+    translations as never,
+  );
+  const context = {
+    switchToHttp: () => ({
+      getRequest: () => ({ headers: {} }),
+    }),
+  } as ExecutionContext;
+
+  assert.equal(await guard.canActivate(context), true);
 });

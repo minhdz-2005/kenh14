@@ -34,7 +34,7 @@ host.
 
 Schema changes are applied manually with TypeORM migrations. The application
 keeps TypeORM synchronization and automatic migration execution disabled.
-Apply the included users migration with:
+Apply all pending migrations with:
 
 ```bash
 npm run migration:run
@@ -49,6 +49,12 @@ Authentication endpoints:
 
 Send access tokens as `Authorization: Bearer <token>`. The Redis blacklist stores
 only the token ID and automatically expires each entry when its JWT expires.
+
+## Articles
+
+- `GET /api/articles` lists articles and accepts `limit`, `offset`, `author`, and `favorited` query parameters.
+- `GET /api/articles/feed` lists articles from followed authors and requires authentication.
+- `POST /api/articles/:slug/favorite` and `DELETE /api/articles/:slug/favorite` favorite or unfavorite an article and require authentication.
 
 ## Useful commands
 

@@ -60,3 +60,20 @@ export class JwtAuthGuard implements CanActivate {
     return true;
   }
 }
+
+@Injectable()
+export class OptionalJwtAuthGuard extends JwtAuthGuard {
+  constructor(
+    jwt: JwtService,
+    redis: RedisService,
+    i18n: I18nService,
+  ) {
+    super(jwt, redis, i18n);
+  }
+
+  override async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    if (request.headers.authorization === undefined) return true;
+    return super.canActivate(context);
+  }
+}

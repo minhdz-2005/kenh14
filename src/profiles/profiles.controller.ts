@@ -94,7 +94,6 @@ export class ProfilesController {
       name: profile.name,
       bio: profile.bio,
       image: profile.avtUrl,
-      articleIds: profile.articleIds,
       workAt: profile.workAt,
       location: profile.location,
       following,
