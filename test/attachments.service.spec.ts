@@ -5,16 +5,12 @@ import { AttachmentsService } from '../src/attachments/attachments.service';
 
 function createService(options?: {
   attachment?: Record<string, unknown> | null;
-  profile?: Record<string, unknown> | null;
 }) {
   let written: { storageKey: string; contents: Buffer } | undefined;
   let readableKey: string | undefined;
   const service = new AttachmentsService(
     {
       findOneBy: async () => options?.attachment ?? null,
-    } as never,
-    {
-      findOne: async () => options?.profile ?? null,
     } as never,
     {
       write: async (storageKey: string, contents: Buffer) => {
@@ -33,7 +29,7 @@ function createService(options?: {
   };
 }
 
-test('avatar upload detects image content and stores a private attachment URL', async () => {
+test('avatar upload detects image content and stores a public attachment URL', async () => {
   const testService = createService();
   const buffer = Buffer.from([0xff, 0xd8, 0xff, 0x00]);
   const file = {
@@ -66,7 +62,7 @@ test('avatar upload rejects unsupported file content', async () => {
   assert.equal(testService.getWritten(), undefined);
 });
 
-test('private attachment is inaccessible to a different profile owner', async () => {
+test('public profile avatar is available without owner authorization', async () => {
   const testService = createService({
     attachment: {
       id: 'attachment-id',
@@ -76,32 +72,10 @@ test('private attachment is inaccessible to a different profile owner', async ()
       fileType: 'image/jpeg',
       fileSize: 4,
     },
-    profile: null,
-  });
-
-  await assert.rejects(
-    testService.service.getPrivateFile('attachment-id', 'another-user'),
-    (error: unknown) =>
-      error instanceof NotFoundException && error.getStatus() === 404,
-  );
-  assert.equal(testService.getReadableKey(), undefined);
-});
-
-test('private attachment returns a path only after owner authorization', async () => {
-  const testService = createService({
-    attachment: {
-      id: 'attachment-id',
-      ownerType: 'profile',
-      ownerId: 'profile-id',
-      storageKey: 'avatar.jpg',
-      fileType: 'image/jpeg',
-      fileSize: 4,
-    },
-    profile: { id: 'profile-id' },
   });
 
   assert.deepEqual(
-    await testService.service.getPrivateFile('attachment-id', 'owner-id'),
+    await testService.service.getPublicFile('attachment-id'),
     {
       path: 'private/avatar.jpg',
       fileType: 'image/jpeg',
@@ -109,4 +83,24 @@ test('private attachment returns a path only after owner authorization', async (
     },
   );
   assert.equal(testService.getReadableKey(), 'avatar.jpg');
+});
+
+test('non-profile attachment is not publicly available', async () => {
+  const testService = createService({
+    attachment: {
+      id: 'attachment-id',
+      ownerType: 'other',
+      ownerId: 'owner-id',
+      storageKey: 'file.bin',
+      fileType: 'application/octet-stream',
+      fileSize: 4,
+    },
+  });
+
+  await assert.rejects(
+    testService.service.getPublicFile('attachment-id'),
+    (error: unknown) =>
+      error instanceof NotFoundException && error.getStatus() === 404,
+  );
+  assert.equal(testService.getReadableKey(), undefined);
 });

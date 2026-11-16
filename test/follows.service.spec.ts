@@ -8,7 +8,6 @@ const profile = {
   name: 'Alice',
   bio: null,
   avtUrl: null,
-  articleIds: [],
   workAt: null,
   location: null,
 };

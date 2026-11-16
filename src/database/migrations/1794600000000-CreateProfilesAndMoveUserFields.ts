@@ -16,7 +16,6 @@ export class CreateProfilesAndMoveUserFields1794600000000
         "name" character varying(100) NOT NULL,
         "bio" text,
         "avt_url" text,
-        "article_ids" uuid[] NOT NULL DEFAULT '{}'::uuid[],
         "work_at" character varying(150),
         "location" character varying(150),
         "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -29,12 +28,12 @@ export class CreateProfilesAndMoveUserFields1794600000000
     `);
     await queryRunner.query(`
       INSERT INTO ${quotedSchema}."profiles" (
-        "id", "user_id", "name", "bio", "avt_url", "article_ids",
-        "work_at", "location", "created_at", "updated_at"
+        "id", "user_id", "name", "bio", "avt_url", "work_at", "location",
+        "created_at", "updated_at"
       )
       SELECT
-        "id", "id", "username", "bio", "image", '{}'::uuid[],
-        NULL, NULL, "created_at", "updated_at"
+        "id", "id", "username", "bio", "image", NULL, NULL,
+        "created_at", "updated_at"
       FROM ${quotedSchema}."users"
     `);
     await queryRunner.query(`

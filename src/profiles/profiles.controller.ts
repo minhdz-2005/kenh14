@@ -16,7 +16,10 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import {
+  JwtAuthGuard,
+  OptionalJwtAuthGuard,
+} from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { FollowsService } from '../follows/follows.service';
@@ -32,22 +35,24 @@ export class ProfilesController {
   ) {}
 
   @Get(':username')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get a user profile by username' })
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({
+    summary: 'Get a user profile by username',
+    description:
+      'Public profile; an optional bearer token determines following.',
+  })
   @ApiOkResponse({ description: 'The requested user profile' })
   @ApiNotFoundResponse({ description: 'The profile does not exist' })
   async getProfile(
     @Param('username') username: string,
-    @CurrentUser() currentUser: AuthenticatedUser,
+    @CurrentUser() currentUser?: AuthenticatedUser,
   ) {
     const profile = await this.profiles.findByUsername(username);
     if (!profile) throw new NotFoundException();
 
-    const following = await this.follows.isFollowing(
-      currentUser.id,
-      profile.userId,
-    );
+    const following = currentUser
+      ? await this.follows.isFollowing(currentUser.id, profile.userId)
+      : false;
     return { profile: this.toProfileResponse(profile, following) };
   }
 
@@ -94,7 +99,6 @@ export class ProfilesController {
       name: profile.name,
       bio: profile.bio,
       image: profile.avtUrl,
-      articleIds: profile.articleIds,
       workAt: profile.workAt,
       location: profile.location,
       following,

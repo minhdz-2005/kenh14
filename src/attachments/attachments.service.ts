@@ -25,8 +25,6 @@ export class AttachmentsService {
   constructor(
     @InjectRepository(Attachment)
     private readonly attachments: Repository<Attachment>,
-    @InjectRepository(Profile)
-    private readonly profiles: Repository<Profile>,
     private readonly storage: LocalPrivateStorageService,
   ) {}
 
@@ -88,19 +86,13 @@ export class AttachmentsService {
     return oldAttachment?.storageKey;
   }
 
-  async getPrivateFile(
+  async getPublicFile(
     id: string,
-    userId: string,
   ): Promise<{ path: string; fileType: string; fileSize: number }> {
     const attachment = await this.attachments.findOneBy({ id });
     if (!attachment || attachment.ownerType !== 'profile') {
       throw new NotFoundException();
     }
-
-    const ownedProfile = await this.profiles.findOne({
-      where: { id: attachment.ownerId, user: { id: userId } },
-    });
-    if (!ownedProfile) throw new NotFoundException();
 
     await this.storage.assertReadable(attachment.storageKey);
     return {

@@ -33,14 +33,6 @@ export class Profile {
   @Column({ name: 'avt_url', type: 'text', nullable: true })
   avtUrl!: string | null;
 
-  @Column({
-    name: 'article_ids',
-    type: 'uuid',
-    array: true,
-    default: () => "'{}'::uuid[]",
-  })
-  articleIds!: string[];
-
   @Column({ name: 'work_at', type: 'varchar', length: 150, nullable: true })
   workAt!: string | null;
 

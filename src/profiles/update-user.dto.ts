@@ -45,7 +45,6 @@ export class UpdateUserDto {
   @ApiPropertyOptional({ example: '', maxLength: 2000 })
   @Transform(({ value }) => {
     if (typeof value !== 'string') return value;
-    if (value.length === 0) return undefined;
     return value.trim() || null;
   })
   @IsOptional()
@@ -56,9 +55,9 @@ export class UpdateUserDto {
   @ApiPropertyOptional({ example: '', maxLength: 150 })
   @Transform(({ value }) => {
     if (typeof value !== 'string') return value;
-    return value.trim() || undefined;
+    return value.trim() || null;
   })
-  @ValidateIf((_object, value) => value !== undefined)
+  @IsOptional()
   @IsString()
   @MaxLength(150)
   workAt?: string | null;
@@ -66,9 +65,9 @@ export class UpdateUserDto {
   @ApiPropertyOptional({ example: '', maxLength: 150 })
   @Transform(({ value }) => {
     if (typeof value !== 'string') return value;
-    return value.trim() || undefined;
+    return value.trim() || null;
   })
-  @ValidateIf((_object, value) => value !== undefined)
+  @IsOptional()
   @IsString()
   @MaxLength(150)
   location?: string | null;

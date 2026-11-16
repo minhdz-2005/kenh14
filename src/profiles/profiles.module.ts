@@ -2,7 +2,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { AttachmentsModule } from '../attachments/attachments.module';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import {
+  JwtAuthGuard,
+  OptionalJwtAuthGuard,
+} from '../auth/jwt-auth.guard';
 import { FollowsModule } from '../follows/follows.module';
 import { Profile } from './profile.entity';
 import { ProfilesController } from './profiles.controller';
@@ -19,6 +22,11 @@ import { User } from '../users/user.entity';
     TypeOrmModule.forFeature([Profile, User]),
   ],
   controllers: [ProfilesController, UserProfileController],
-  providers: [ProfilesService, UserProfileService, JwtAuthGuard],
+  providers: [
+    ProfilesService,
+    UserProfileService,
+    JwtAuthGuard,
+    OptionalJwtAuthGuard,
+  ],
 })
 export class ProfilesModule {}
