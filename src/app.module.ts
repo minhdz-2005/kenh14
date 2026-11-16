@@ -8,6 +8,7 @@ import {
 } from 'nestjs-i18n';
 import { join } from 'node:path';
 import { AuthModule } from './auth/auth.module';
+import { ArticlesModule } from './articles/articles.module';
 import { DatabaseModule } from './database/database.module';
 import { validateEnvironment } from './config/environment';
 import { RedisModule } from './redis/redis.module';
@@ -26,6 +27,7 @@ import { AppController } from './app.controller';
     UsersModule,
     ProfilesModule,
     AuthModule,
+    ArticlesModule,
     I18nModule.forRoot({
       fallbackLanguage: process.env.DEFAULT_LANG ?? 'en',
       loaderOptions: {
