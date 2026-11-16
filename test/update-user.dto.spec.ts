@@ -4,7 +4,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { UpdateUserDto } from '../src/profiles/update-user.dto';
 
-test('update user rejects null identity fields but treats empty fields as unchanged', async () => {
+test('update user rejects null identity fields and maps empty profile fields to null', async () => {
   const dto = plainToInstance(UpdateUserDto, {
     email: null,
     username: null,
@@ -20,12 +20,12 @@ test('update user rejects null identity fields but treats empty fields as unchan
     errors.map((error) => error.property).sort(),
     ['email', 'name', 'username'],
   );
-  assert.equal(dto.bio, undefined);
-  assert.equal(dto.workAt, undefined);
-  assert.equal(dto.location, undefined);
+  assert.equal(dto.bio, null);
+  assert.equal(dto.workAt, null);
+  assert.equal(dto.location, null);
 });
 
-test('update user trims fields and only whitespace bio clears the value', async () => {
+test('update user trims fields and maps whitespace profile fields to null', async () => {
   const dto = plainToInstance(UpdateUserDto, {
     email: '  MINH@example.com ',
     username: '  minh ',
@@ -40,6 +40,6 @@ test('update user trims fields and only whitespace bio clears the value', async 
   assert.equal(dto.username, 'minh');
   assert.equal(dto.name, 'Minh Nguyen');
   assert.equal(dto.bio, null);
-  assert.equal(dto.workAt, undefined);
+  assert.equal(dto.workAt, null);
   assert.equal(dto.location, 'Ho Chi Minh City');
 });
