@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'node:crypto';
 import { In, Repository } from 'typeorm';
 import { UserFollow } from '../follows/user-follow.entity';
+import { slugify } from '../helpers';
 import { UsersService } from '../users/users.service';
 import { ArticleFavorite } from './article-favorite.entity';
 import { Article } from './article.entity';
@@ -42,7 +43,7 @@ export class ArticlesService {
     });
 
     const savedArticle = await this.articles.save(article);
-    const [response] = await this.toResponses([savedArticle], authorId);
+    const [response] = await this.buildArticleResponses([savedArticle], authorId);
     return { article: response };
   }
 
@@ -74,16 +75,15 @@ export class ArticlesService {
 
     if (query.favorited) {
       const favoritedUser = await this.users.findByUsername(query.favorited);
-      if (favoritedUser) {
-        articlesQuery.innerJoin(
-          ArticleFavorite,
-          'favorite_filter',
-          'favorite_filter.articleId = article.id AND favorite_filter.userId = :favoritedUserId',
-          { favoritedUserId: favoritedUser.id },
-        );
-      } else {
-        articlesQuery.andWhere('1 = 0');
+      if (!favoritedUser) {
+        return { articles: [], articlesCount: 0 };
       }
+      articlesQuery.innerJoin(
+        ArticleFavorite,
+        'favorite_filter',
+        'favorite_filter.articleId = article.id AND favorite_filter.userId = :favoritedUserId',
+        { favoritedUserId: favoritedUser.id },
+      );
     }
 
     if (feedUserId) {
@@ -107,7 +107,7 @@ export class ArticlesService {
       .getManyAndCount();
 
     return {
-      articles: await this.toResponses(articles, viewerId),
+      articles: await this.buildArticleResponses(articles, viewerId),
       articlesCount,
     };
   }
@@ -118,7 +118,7 @@ export class ArticlesService {
       relations: { author: { profile: true } },
     });
     if (!article) throw new NotFoundException('Article not found');
-    const [response] = await this.toResponses([article], viewerId);
+    const [response] = await this.buildArticleResponses([article], viewerId);
     return { article: response };
   }
 
@@ -161,7 +161,7 @@ export class ArticlesService {
       !input ||
       Object.values(input).every((value) => value === undefined)
     ) {
-      const [response] = await this.toResponses([article], userId);
+      const [response] = await this.buildArticleResponses([article], userId);
       return { article: response };
     }
 
@@ -172,7 +172,7 @@ export class ArticlesService {
     if (input.body !== undefined) article.body = input.body;
 
     const savedArticle = await this.articles.save(article);
-    const [response] = await this.toResponses([savedArticle], userId);
+    const [response] = await this.buildArticleResponses([savedArticle], userId);
     return { article: response };
   }
 
@@ -196,9 +196,13 @@ export class ArticlesService {
     return article;
   }
 
-  private async toResponses(articles: Article[], viewerId?: string) {
+  private async buildArticleResponses(articles: Article[], viewerId?: string) {
     if (articles.length === 0) return [];
+    const meta = await this.loadArticleMeta(articles, viewerId);
+    return this.toResponses(articles, meta);
+  }
 
+  private async loadArticleMeta(articles: Article[], viewerId?: string) {
     const articleIds = articles.map((article) => article.id);
     const authorIds = [...new Set(articles.map((article) => article.author.id))];
     const [favoriteStats, followedAuthors] = await Promise.all([
@@ -239,8 +243,21 @@ export class ArticlesService {
       followedAuthors.map((follow) => follow.followingId),
     );
 
+    return { statsByArticleId, followedAuthorIds };
+  }
+
+  private toResponses(
+    articles: Article[],
+    meta: {
+      statsByArticleId: Map<
+        string,
+        { favoritesCount: number; favorited: boolean }
+      >;
+      followedAuthorIds: Set<string>;
+    },
+  ) {
     return articles.map((article) => {
-      const stats = statsByArticleId.get(article.id);
+      const stats = meta.statsByArticleId.get(article.id);
       return {
         slug: article.slug,
         title: article.title,
@@ -255,22 +272,9 @@ export class ArticlesService {
           username: article.author.username,
           bio: article.author.profile?.bio ?? null,
           image: article.author.profile?.avtUrl ?? null,
-          following: followedAuthorIds.has(article.author.id),
+          following: meta.followedAuthorIds.has(article.author.id),
         },
       };
     });
   }
-}
-
-function slugify(title: string): string {
-  const slug = title
-    .replace(/[đĐ]/g, 'd')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 230)
-    .replace(/-+$/g, '');
-  return slug || 'article';
 }

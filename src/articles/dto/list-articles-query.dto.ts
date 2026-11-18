@@ -1,17 +1,7 @@
 import { Transform } from 'class-transformer';
 import { IsInt, IsOptional, IsString, Length, Max, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-
-function toOptionalInteger(value: unknown): unknown {
-  if (typeof value !== 'string') return value;
-  if (value.trim() === '') return undefined;
-  return Number(value);
-}
-
-function trimOptionalString(value: unknown): unknown {
-  if (typeof value !== 'string') return value;
-  return value.trim() || undefined;
-}
+import { toOptionalInteger, trimOptionalString } from '../../helpers';
 
 export class ListArticlesQueryDto {
   @ApiPropertyOptional({ minimum: 1, maximum: 100, default: 20 })
