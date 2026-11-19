@@ -14,6 +14,7 @@
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts",
     "test:auth": "node --test -r ts-node/register test/auth-flow.spec.ts",
+    "test:e2e": "node --test -r ts-node/register test/articles.e2e-spec.ts",
     "lint": "eslint \"src/**/*.ts\""
   },
   "dependencies": {
