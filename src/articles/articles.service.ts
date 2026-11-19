@@ -38,7 +38,6 @@ export class ArticlesService {
       title: input.title,
       description: input.description,
       body: input.body,
-      commentIds: [],
       author,
     });
 
@@ -263,7 +262,6 @@ export class ArticlesService {
         title: article.title,
         description: article.description,
         body: article.body,
-        commentIds: article.commentIds,
         createdAt: article.createdAt,
         updatedAt: article.updatedAt,
         favorited: stats?.favorited ?? false,
