@@ -38,19 +38,7 @@ export class CommentsService {
       author,
     });
 
-    const savedComment = await this.comments.manager.transaction(
-      async (manager) => {
-        const saved = await manager.save(comment);
-        await manager
-          .createQueryBuilder()
-          .update(Article)
-          .set({ commentIds: () => 'array_append(comment_ids, :commentId)' })
-          .where('id = :articleId', { articleId: article.id })
-          .setParameter('commentId', id)
-          .execute();
-        return saved;
-      },
-    );
+    const savedComment = await this.comments.save(comment);
 
     const [response] = await this.buildResponses([savedComment], userId);
     return { comment: response };
@@ -76,16 +64,7 @@ export class CommentsService {
       throw new ForbiddenException('You can only delete your own comments');
     }
 
-    await this.comments.manager.transaction(async (manager) => {
-      await manager.delete(Comment, { id: commentId });
-      await manager
-        .createQueryBuilder()
-        .update(Article)
-        .set({ commentIds: () => 'array_remove(comment_ids, :commentId)' })
-        .where('id = :articleId', { articleId: article.id })
-        .setParameter('commentId', commentId)
-        .execute();
-    });
+    await this.comments.delete({ id: commentId });
   }
 
   private async findArticleBySlug(slug: string): Promise<Article> {
