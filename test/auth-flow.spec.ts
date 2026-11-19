@@ -5,7 +5,10 @@ import { validate } from 'class-validator';
 import { JwtService } from '@nestjs/jwt';
 import { ExecutionContext } from '@nestjs/common';
 import { AuthService } from '../src/auth/auth.service';
-import { JwtAuthGuard } from '../src/auth/jwt-auth.guard';
+import {
+  JwtAuthGuard,
+  OptionalJwtAuthGuard,
+} from '../src/auth/jwt-auth.guard';
 import { LoginCredentialsDto } from '../src/auth/dto/login-user.dto';
 import { RegisterCredentialsDto } from '../src/auth/dto/register-user.dto';
 import { validateEnvironment } from '../src/config/environment';
@@ -33,8 +36,10 @@ const testUsers: any = {
     id: 'user-id',
     email: 'minh@example.com',
     username: 'minh',
-    bio: null,
-    image: null,
+    profile: {
+      bio: 'Backend developer',
+      avtUrl: '/api/attachments/avatar-id',
+    },
   }),
 };
 
@@ -51,6 +56,26 @@ const auth = new AuthService(
   testRedis as never,
   translations as never,
 );
+
+test('current user response reads bio and image from the profile', async () => {
+  const response = await auth.getCurrentUser({
+    id: 'user-id',
+    email: 'minh@example.com',
+    tokenId: 'token-id',
+    expiresAt: 1,
+    token: 'access-token',
+  });
+
+  assert.deepEqual(response, {
+    user: {
+      email: 'minh@example.com',
+      token: 'access-token',
+      username: 'minh',
+      bio: 'Backend developer',
+      image: '/api/attachments/avatar-id',
+    },
+  });
+});
 
 test('duplicate registration returns 409', async () => {
   await assert.rejects(
@@ -72,8 +97,6 @@ test('wrong password returns 401 for an existing email', async () => {
     username: 'minh',
     passwordHash:
       '$2b$12$PCxmhQtOtVsmGBx6H24JEefp9Q/gmheNsibDPw/eBvVfLkak6xfDm',
-    bio: null,
-    image: null,
   });
   try {
     await assert.rejects(
@@ -168,4 +191,19 @@ test('JWT guard rejects a token after the logout flow revokes it', async () => {
     guard.canActivate(context),
     (error: { getStatus?: () => number }) => error.getStatus?.() === 401,
   );
+});
+
+test('optional JWT guard allows a request without an authorization header', async () => {
+  const guard = new OptionalJwtAuthGuard(
+    new JwtService({ secret: 'unused' }),
+    testRedis as never,
+    translations as never,
+  );
+  const context = {
+    switchToHttp: () => ({
+      getRequest: () => ({ headers: {} }),
+    }),
+  } as ExecutionContext;
+
+  assert.equal(await guard.canActivate(context), true);
 });
