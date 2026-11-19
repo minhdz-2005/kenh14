@@ -63,7 +63,11 @@ export class JwtAuthGuard implements CanActivate {
 
 @Injectable()
 export class OptionalJwtAuthGuard extends JwtAuthGuard {
-  constructor(jwt: JwtService, redis: RedisService, i18n: I18nService) {
+  constructor(
+    jwt: JwtService,
+    redis: RedisService,
+    i18n: I18nService,
+  ) {
     super(jwt, redis, i18n);
   }
 
