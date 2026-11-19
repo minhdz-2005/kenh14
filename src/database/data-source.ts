@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 import { Attachment } from '../attachments/attachment.entity';
 import { ArticleFavorite } from '../articles/article-favorite.entity';
 import { Article } from '../articles/article.entity';
+import { Comment } from '../comments/comment.entity';
 import { UserFollow } from '../follows/user-follow.entity';
 import { Profile } from '../profiles/profile.entity';
 import { User } from '../users/user.entity';
@@ -11,7 +12,7 @@ import { createDatabaseOptions } from './database-options';
 
 const dataSource = new DataSource({
   ...createDatabaseOptions(process.env),
-  entities: [User, Profile, UserFollow, Attachment, Article, ArticleFavorite],
+  entities: [User, Profile, UserFollow, Attachment, Article, ArticleFavorite, Comment],
   migrations: [join(__dirname, 'migrations/*{.ts,.js}')],
   synchronize: false,
 });
