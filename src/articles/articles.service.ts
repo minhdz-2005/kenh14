@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'node:crypto';
 import { In, Repository } from 'typeorm';
 import { UserFollow } from '../follows/user-follow.entity';
-import { slugify } from '../helpers';
+import { slugify, toAuthorResponse } from '../helpers';
 import { UsersService } from '../users/users.service';
 import { ArticleFavorite } from './article-favorite.entity';
 import { Article } from './article.entity';
@@ -38,7 +38,6 @@ export class ArticlesService {
       title: input.title,
       description: input.description,
       body: input.body,
-      commentIds: [],
       author,
     });
 
@@ -263,17 +262,14 @@ export class ArticlesService {
         title: article.title,
         description: article.description,
         body: article.body,
-        commentIds: article.commentIds,
         createdAt: article.createdAt,
         updatedAt: article.updatedAt,
         favorited: stats?.favorited ?? false,
         favoritesCount: stats?.favoritesCount ?? 0,
-        author: {
-          username: article.author.username,
-          bio: article.author.profile?.bio ?? null,
-          image: article.author.profile?.avtUrl ?? null,
-          following: meta.followedAuthorIds.has(article.author.id),
-        },
+        author: toAuthorResponse(
+          article.author,
+          meta.followedAuthorIds.has(article.author.id),
+        ),
       };
     });
   }

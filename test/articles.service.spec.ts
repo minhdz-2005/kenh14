@@ -186,7 +186,7 @@ function createService() {
   };
 }
 
-test('create stores an article with a unique slug and empty comment IDs', async () => {
+test('create stores an article with a unique slug', async () => {
   const { service, getStored } = createService();
   const result = await service.create('author-id', {
     title: 'Bài viết đầu tiên',
@@ -195,7 +195,6 @@ test('create stores an article with a unique slug and empty comment IDs', async 
   });
 
   assert.match(result.article.slug, /^bai-viet-dau-tien-[0-9a-f]{8}$/);
-  assert.deepEqual(result.article.commentIds, []);
   assert.equal(result.article.favorited, false);
   assert.equal(result.article.favoritesCount, 0);
   assert.deepEqual(result.article.author, {

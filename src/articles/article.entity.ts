@@ -30,14 +30,6 @@ export class Article {
   @Column({ type: 'text' })
   body!: string;
 
-  @Column({
-    name: 'comment_ids',
-    type: 'uuid',
-    array: true,
-    default: () => "'{}'::uuid[]",
-  })
-  commentIds!: string[];
-
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'author_id' })
   author!: User;
