@@ -4,6 +4,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../../src/app.module';
+import { configureApp } from '../../src/app-setup';
 import { RedisService } from '../../src/redis/redis.service';
 
 export interface E2ERequestOptions {
@@ -52,7 +53,7 @@ async function startE2EContext(): Promise<E2EContext> {
     .useValue(fakeRedis)
     .compile();
   const app: INestApplication = moduleRef.createNestApplication();
-  app.setGlobalPrefix('api');
+  configureApp(app);
   await app.init();
   await app.listen(0);
 

@@ -4,6 +4,7 @@ import {
   Catch,
   ExceptionFilter,
   HttpException,
+  Logger,
   HttpStatus,
   UnprocessableEntityException,
   ValidationError,
@@ -41,10 +42,16 @@ export function createValidationException(errors: ValidationError[]): Unprocessa
 
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(ApiExceptionFilter.name);
+
   catch(exception: unknown, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<Response>();
 
     if (!(exception instanceof HttpException)) {
+      this.logger.error(
+        exception instanceof Error ? exception.message : String(exception),
+        exception instanceof Error ? exception.stack : undefined,
+      );
       response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         errors: { message: ['Internal server error'] },
       });

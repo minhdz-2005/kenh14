@@ -2,6 +2,7 @@ import * as assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   ArgumentsHost,
+  Logger,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -100,4 +101,20 @@ test('unknown errors return 500 without leaking internals', () => {
   assert.deepEqual(captured.body, {
     errors: { message: ['Internal server error'] },
   });
+});
+
+test('unknown errors are logged before the 500 response', () => {
+  const original = Logger.prototype.error;
+  const logged: string[] = [];
+  Logger.prototype.error = function (message: unknown) {
+    logged.push(String(message));
+  } as typeof original;
+  try {
+    const { host, captured } = createHost();
+    new ApiExceptionFilter().catch(new Error('secret stack detail'), host);
+    assert.equal(captured.status, 500);
+    assert.deepEqual(logged, ['secret stack detail']);
+  } finally {
+    Logger.prototype.error = original;
+  }
 });
