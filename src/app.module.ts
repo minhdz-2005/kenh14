@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import {
   AcceptLanguageResolver,
   HeaderResolver,
@@ -12,6 +13,10 @@ import { ArticlesModule } from './articles/articles.module';
 import { CommentsModule } from './comments/comments.module';
 import { DatabaseModule } from './database/database.module';
 import { validateEnvironment } from './config/environment';
+import {
+  ApiExceptionFilter,
+  createValidationException,
+} from './api-exception.filter';
 import { RedisModule } from './redis/redis.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { UsersModule } from './users/users.module';
@@ -44,5 +49,17 @@ import { AppController } from './app.controller';
     }),
   ],
   controllers: [AppController],
+  providers: [
+    {
+      provide: APP_PIPE,
+      useValue: new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        exceptionFactory: createValidationException,
+      }),
+    },
+    { provide: APP_FILTER, useClass: ApiExceptionFilter },
+  ],
 })
 export class AppModule {}

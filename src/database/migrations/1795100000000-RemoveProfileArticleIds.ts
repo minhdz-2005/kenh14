@@ -10,7 +10,7 @@ export class RemoveProfileArticleIds1795100000000
     const quotedSchema = `"${schema.replace(/"/g, '""')}"`;
     await queryRunner.query(`
       ALTER TABLE ${quotedSchema}."profiles"
-      DROP COLUMN "article_ids"
+      DROP COLUMN IF EXISTS "article_ids"
     `);
   }
 
