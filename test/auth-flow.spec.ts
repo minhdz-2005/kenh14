@@ -193,7 +193,7 @@ test('JWT guard rejects a token after the logout flow revokes it', async () => {
   );
 });
 
-test('optional JWT guard allows a request without an authorization header', async () => {
+test('optional JWT guard allows requests without an authorization header', async () => {
   const guard = new OptionalJwtAuthGuard(
     new JwtService({ secret: 'unused' }),
     testRedis as never,
