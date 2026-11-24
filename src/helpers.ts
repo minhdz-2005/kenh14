@@ -9,6 +9,21 @@ export function trimOptionalString(value: unknown): unknown {
   return value.trim() || undefined;
 }
 
+export function toAuthorResponse(
+  author: {
+    username: string;
+    profile?: { bio: string | null; avtUrl: string | null } | null;
+  },
+  following: boolean,
+) {
+  return {
+    username: author.username,
+    bio: author.profile?.bio ?? null,
+    image: author.profile?.avtUrl ?? null,
+    following,
+  };
+}
+
 export function slugify(title: string): string {
   const slug = title
     .replace(/[đĐ]/g, 'd')
